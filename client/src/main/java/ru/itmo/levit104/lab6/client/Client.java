@@ -55,14 +55,14 @@ public class Client {
             closeClient();
         } catch (ClientServerStartException e) {
             if (connectionAttempts == 1) {
-                System.err.println("Ошибка при запуске клиента. Сервер недоступен");
+                System.out.println("Ошибка при запуске клиента. Сервер недоступен");
             }
         } catch (WritingDataException e) {
-            System.err.println("Ошибка при отправке данных.");
+            System.out.println("Ошибка при отправке данных.");
         } catch (ReadingDataException e) {
             connected = false;
             if (e.getCause() == null) {
-                System.err.println("Потеряно соединение с сервером.");
+                System.out.println("Потеряно соединение с сервером.");
                 while (!connected) {
                     System.out.println("Попытка переподключиться...");
                     run();
@@ -71,10 +71,12 @@ public class Client {
                     } catch (InterruptedException ignored) {}
                 }
             } else {
-                System.err.println("Ошибка при получении данных.");
+                System.out.println("Ошибка при получении данных.");
             }
         } catch (ClientServerClosingException e) {
-            System.err.println("Ошибка при закрытии клиента.");
+            System.out.println("Ошибка при закрытии клиента.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка при запуске клиента. Порт должен находиться в диапазоне от 0 до 65535");
         }
     }
     private void startClient() throws ClientServerStartException {
@@ -91,7 +93,7 @@ public class Client {
             byte[] bytes = SerializationUtils.serialize(request);
             ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
             socketChannel.write(byteBuffer);
-            ((Buffer) byteBuffer).clear();
+            ((Buffer) byteBuffer).clear(); //(Buffer) нужно для запуска на Helios
         } catch (IOException e) {
             throw new WritingDataException(e);
         }
@@ -99,7 +101,7 @@ public class Client {
     private ResponseMessage readMessage() throws ReadingDataException {
         try {
             ByteBuffer byteBuffer = ByteBuffer.allocate(1000000);
-            ((Buffer) byteBuffer).clear();
+            ((Buffer) byteBuffer).clear(); //(Buffer) нужно для запуска на Helios
 
             int data = socketChannel.read(byteBuffer);
             if (data == -1) {
@@ -107,7 +109,7 @@ public class Client {
             }
 
             byte[] bytes = new byte[data];
-            ((Buffer) byteBuffer).position(0);
+            ((Buffer) byteBuffer).position(0); //(Buffer) нужно для запуска на Helios
             byteBuffer.get(bytes);
 
             return SerializationUtils.deserialize(bytes);

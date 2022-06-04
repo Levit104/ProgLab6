@@ -69,10 +69,12 @@ public class Server {
         } catch (IOException e) {
             ServerLogger.logger.error("Ошибка при отключении от клиента");
         } catch (ClientServerStartException e) {
-            ServerLogger.logger.error("Ошибка при запуске сервера");
+            ServerLogger.logger.error("Ошибка при запуске сервера. Порт может быть занят");
         } catch (ConnectionException e) {
             ServerLogger.logger.error("Ошибка при подключении к клиенту {}",
                     clientChannel.socket().getRemoteSocketAddress());
+        } catch (IllegalArgumentException e) {
+            ServerLogger.logger.error("Ошибка при запуске сервера. Порт должен находиться в диапазоне от 0 до 65535");
         }
     }
     private void startServer() throws ClientServerStartException {
@@ -103,7 +105,7 @@ public class Server {
         try {
             clientChannel = (SocketChannel) key.channel();
             ByteBuffer byteBuffer = ByteBuffer.allocate(1000000);
-            ((Buffer) byteBuffer).clear();
+            ((Buffer) byteBuffer).clear(); //(Buffer) нужно для запуска на Helios
 
             int data = clientChannel.read(byteBuffer);
             if (data == -1) {
@@ -112,7 +114,7 @@ public class Server {
             }
 
             byte[] bytes = new byte[data];
-            ((Buffer) byteBuffer).position(0);
+            ((Buffer) byteBuffer).position(0); //(Buffer) нужно для запуска на Helios
             byteBuffer.get(bytes);
 
             return SerializationUtils.deserialize(bytes);
@@ -128,7 +130,7 @@ public class Server {
             while (byteBuffer.hasRemaining()) {
                 clientChannel.write(byteBuffer);
             }
-            ((Buffer) byteBuffer).clear();
+            ((Buffer) byteBuffer).clear(); //(Buffer) нужно для запуска на Helios
         } catch (IOException e) {
             throw new WritingDataException(e);
         }
